@@ -54,16 +54,21 @@ def chat_ollama(messages, config):
     payload = {
         "model": config["ollama_model"],
         "messages": messages,
-        "temperature": config["temperature"],
         "stream": False,
+        "options": {
+            "temperature": config["temperature"],
+        }
     }
 
     try:
-        response = requests.post(config["ollama_url"], json=payload, timeout=60)
+        response = requests.post(config["ollama_url"], json=payload, timeout=120)
         response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
+        data = response.json()
+        return data["message"]["content"]
     except requests.exceptions.RequestException as e:
         return f"Error de conexión con Ollama: {e}"
+    except KeyError as e:
+        return f"Error: respuesta inesperada de Ollama: {data}"
 
 
 def chat_groq(messages, config):
